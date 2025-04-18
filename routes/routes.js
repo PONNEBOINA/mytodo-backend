@@ -2,7 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/model.js");
 const router = express.Router();
-
+const sendMail = require("../nodemailer/index.js")
 // REGISTER
 router.post("/register", async (req, res) => {
     try {
@@ -12,9 +12,17 @@ router.post("/register", async (req, res) => {
       if (existingUser) return res.status(400).json({ msg: "You already have an account" });
   
       const user = await User.create({ email, username, password });
+      await user.save()
   
 
       const token = jwt.sign({ id: user._id }, process.env.mytoken, { expiresIn: "100d" });
+
+      await sendMail(
+        email,
+        '🎉 Welcome to Our App!',
+        `Hi ${username},\n\nThanks for registering! We're happy to have you onboard.`
+    
+      )
   
       res.status(201).json({
         id: user._id,
